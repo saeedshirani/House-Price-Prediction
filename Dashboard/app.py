@@ -1,5 +1,6 @@
 import dash
 from dash import callback
+import statsmodels.api as sm
 import statsmodels
 import dash_bootstrap_components as dbc
 from dash import dcc, html  # Updated imports
@@ -124,12 +125,37 @@ app.layout = dbc.Container([
 
 def update_graph(value1, value2, value3, value4):
 
-
+    """
     dff = df[(df.Neighborhood==value1) & (df.Bathrooms==value2) & (df.Bedrooms==value3) & (df.YearBuilt.between( value4[0], value4[1] )) ]
 
     scatter_fig = px.scatter(dff, x='SquareFeet', y='Price', color="Neighborhood", trendline="ols", trendline_color_override="red")
-    
-                              
+    """
+
+
+    # Assuming df, value1, value2, value3, and value4 are defined
+
+    # Filter the DataFrame based on conditions
+    dff = df[(df.Neighborhood==value1) & 
+            (df.Bathrooms==value2) & 
+            (df.Bedrooms==value3) & 
+            (df.YearBuilt.between(value4[0], value4[1]))]
+
+    # Perform linear regression
+    X = sm.add_constant(dff['SquareFeet'])  # Add a constant term to the predictor
+    y = dff['Price']
+
+    model = sm.OLS(y, X).fit()  # Fit the model
+    predictions = model.predict(X)
+
+    # Plot scatter plot with regression line
+    scatter_fig = px.scatter(dff, x='SquareFeet', y='Price', color="Neighborhood", trendline="ols")
+
+    # Add regression line to the plot
+    scatter_fig.add_scatter(x=dff['SquareFeet'], y=predictions, mode='lines', name='Regression Line',  line=dict(color='pink'))
+
+
+
+                                
     return scatter_fig
     
 
